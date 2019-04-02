@@ -1,0 +1,29 @@
+---
+- hosts: all
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+      become: yes
+
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+      become: yes
+
+    # create a directory if it doesn't exist
+    - file:
+        path: /etc/nginx/ssl
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+
+    - name: Set Directory permissions
+      file: path=/var/www/ owner=www-data group=www-data mode=0755 state=directory recurse=yes
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes

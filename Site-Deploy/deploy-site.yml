@@ -1,0 +1,85 @@
+---
+- hosts: all
+  vars_files:
+    - vars/main.yml
+  tasks:
+### {{site_url}} SSL Copy
+    - name: copy {{site_url}} SSL files
+      copy:
+        src: ./certs/{{site_url}}.csr
+        dest: /etc/nginx/ssl/{{site_url}}.csr
+      become: yes
+
+    - name: copy {{site_url}} SSL key files
+      copy:
+        src: ./certs/{{site_url}}.key
+        dest: /etc/nginx/ssl/{{site_url}}.key
+      become: yes
+
+### {{site_url}} Nginx configuration
+    - name: copy the nginx config file
+      copy:
+        src: ./site-config/{{site_url}}.cfg
+        dest: /etc/nginx/sites-available/{{site_url}}.cfg
+      become: yes
+
+    - name: create symlink
+      file:
+        src: /etc/nginx/sites-available/{{site_url}}.cfg
+        dest: /etc/nginx/sites-enabled/{{site_url}}.cfg
+        state: link
+      become: yes
+
+###  Create a directory for the website
+    - file:
+        path: /var/www/{{site_url}}
+        state: directory
+        mode: 0755
+
+
+##{{site_url}} Website Copy
+    - name: copy the content of the web site
+      synchronize:
+        src: ./sites/
+        dest: /var/www/{{site_url}}
+        delete: yes
+
+###{{site_url}} Database Creation
+    - name: Create a {{site_url}} database
+      mysql_db:
+        name: "{{site_db}}"
+        state: present
+
+    - name: "Create a new user for {{site_url}}"
+      mysql_user:
+        name: "{{site_db_user}}"
+        password: "{{site_db_password}}"
+        priv: '{{site_db}}.*:ALL'
+        state: present
+#
+# ###Import database
+    - name: import the database
+      mysql_db:
+        name: "{{site_db}}"
+        state: import
+        target: /var/www/{{site_url}}/{{db_file}}
+        login_user: "{{site_db_user}}"
+        login_password: "{{site_db_password}}"
+
+###Set Directory permissions
+    - name: Set Directory permissions
+      file: path=/var/www/ owner=www-data group=www-data mode=0755 state=directory recurse=yes
+
+
+## Restart NginX and PHP-fpm
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+
+    - name: restart PHP FPM
+      service:
+        name: php7.2-fpm
+        state: restarted
+      become: yes

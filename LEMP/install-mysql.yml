@@ -1,0 +1,28 @@
+---
+  - hosts: all
+    tasks:
+      - name: "Install Python MySQL Dependency"
+        apt:
+          name: ['python-mysqldb',
+            'python3-pip',
+            'python3-dev',
+            'libmysqlclient-dev',
+            'mysql-server',
+            'php7.2-mysql']
+
+      - name: select default locale
+        debconf:
+          name: locales
+          question: locales/default_environment_locale
+          value: en_US.UTF-8
+          vtype: select
+
+      - name: set timezone to Asia/Bangkok
+        timezone:
+          name: Asia/Bangkok
+
+      - name: "Install Python MySQL Module"
+        pip:
+          name: mysqlclient
+          extra_args: -i https://pypi.python.org/pypi/
+          executable: pip3

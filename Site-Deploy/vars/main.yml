@@ -1,0 +1,5 @@
+site_url: <update_with_the_site_url>
+site_db: <update_with_db_name>
+site_db_user: <update_with_db_user>
+site_db_password: <update_with_db_password>
+db_file: aliyun-site-backup-wp.sql

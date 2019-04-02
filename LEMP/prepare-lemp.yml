@@ -1,0 +1,72 @@
+---
+- hosts: all
+  tasks:
+    - name: ensure nginx is at the latest version
+      apt: name=nginx state=latest
+      become: yes
+
+    - name: start nginx
+      service:
+          name: nginx
+          state: started
+      become: yes
+
+    # create a directory if it doesn't exist
+    - file:
+        path: /etc/nginx/ssl
+        state: directory
+        mode: 0755
+        owner: root
+        group: root
+
+    - name: Set Directory permissions
+      file: path=/var/www/ owner=www-data group=www-data mode=0755 state=directory recurse=yes
+
+    - name: restart nginx
+      service:
+        name: nginx
+        state: restarted
+      become: yes
+
+    - name: "Install Python MySQL Dependency"
+      apt:
+        name: ['python-mysqldb',
+          'python3-pip',
+          'python3-dev',
+          'libmysqlclient-dev',
+          'mysql-server',
+          'php7.2-mysql']
+
+    - name: select default locale
+      debconf:
+        name: locales
+        question: locales/default_environment_locale
+        value: en_US.UTF-8
+        vtype: select
+
+    #Provide the TimeZone Details 
+    - name: set timezone to Asia/Bangkok
+      timezone:
+        name: Asia/Bangkok
+
+    - name: "Install Python MySQL Module"
+      pip:
+        name: mysqlclient
+        extra_args: -i https://pypi.python.org/pypi/
+        executable: pip3
+
+    - name: restart PHP-FPM
+      service:
+        name: php7.2-fpm
+        state: restarted
+      become: yes
+
+
+  vars_files:
+    - vars/main.yml
+  roles:
+    - geerlingguy.php-versions
+    - geerlingguy.php
+    - geerlingguy.swap
+    - geerlingguy.security
+    - geerlingguy.firewall
