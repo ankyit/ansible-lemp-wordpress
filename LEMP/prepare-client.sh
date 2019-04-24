@@ -8,4 +8,5 @@ ansible-galaxy install geerlingguy.php-versions &&
 ansible-galaxy install geerlingguy.php &&
 ansible-galaxy install geerlingguy.security &&
 ansible-galaxy install geerlingguy.firewall &&
-ansible-galaxy install geerlingguy.swap
+ansible-galaxy install geerlingguy.swap &&
+ansible-galaxy install sbaerlocher.wp-cli
